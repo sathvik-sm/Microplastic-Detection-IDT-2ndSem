@@ -1,0 +1,224 @@
+/*
+
+app.get('/data', async (req,res) => {
+    try{
+        const data = await fs.readFile('data.json','utf8');
+        const values = JSON.parse(data);
+        res.render('index',{values});
+    }
+    catch(error){
+        console.log(error);
+    }
+});
+
+Let's break down what happens:
+Without async/await
+Since fs.readFile() from fs/promises returns a Promise, you'd have to write:
+
+app.get('/data', (req,res) => {
+    fs.readFile('data.json', 'utf8')
+        .then(data => {
+            const values = JSON.parse(data);
+            res.render('index', { values });
+        })
+        .catch(error => {
+            console.log(error);
+        });
+});
+
+With async/await
+app.get('/data', async (req,res) => {
+    try{
+        const data = await fs.readFile('data.json', 'utf8');
+        const values = JSON.parse(data);
+        res.render('index', { values });
+    }
+    catch(error){
+        console.log(error);
+    }
+});
+
+Here's what each keyword is doing:
+async
+async (req,res) => {
+
+marks the route handler as asynchronous. This allows you to use await inside it.
+
+const data = await fs.readFile('data.json', 'utf8');
+
+means:
+"Wait until the Promise returned by readFile() resolves, then store the result in data."
+Without await, you'd get the Promise object itself:
+
+const data = fs.readFile('data.json', 'utf8');
+
+console.log(data);
+// Promise { <pending> }
+
+With await, you get the actual file contents:
+const data = await fs.readFile('data.json', 'utf8');
+console.log(data);
+// {"name":"John","age":25}
+A small improvement
+
+
+Another example
+Suppose you needed to read two files in sequence:
+
+app.get('/data', async (req,res) => {
+    try{
+        const usersData = await fs.readFile('users.json', 'utf8');
+        const postsData = await fs.readFile('posts.json', 'utf8');
+
+        const users = JSON.parse(usersData);
+        const posts = JSON.parse(postsData);
+
+        res.render('index', { users, posts });
+    }
+    catch(error){
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+Each await pauses the route handler until that Promise resolves.
+
+
+
+------------------------------------------------------------------------------------------------------------------------------
+Q.2)Since I have used async method, that means it must return a promise, where is the promise?
+
+Excellent question. This is exactly the point where many people get confused about async.
+
+Consider your route:
+
+app.get('/data', async (req, res) => {
+    try {
+        const data = await fs.readFile('data.json', 'utf8');
+        const values = JSON.parse(data);
+        res.render('index', { values });
+    }
+    catch(error) {
+        console.log(error);
+    }
+});
+
+You might think:
+
+"I marked the function as async, but I never wrote return new Promise(...). So where is the Promise?"
+
+The answer is:
+
+JavaScript automatically creates the Promise for you.
+
+Your code:
+
+async (req, res) => {
+    const data = await fs.readFile('data.json', 'utf8');
+    const values = JSON.parse(data);
+    res.render('index', { values });
+}
+
+is roughly equivalent to:
+
+(req, res) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const data = await fs.readFile('data.json', 'utf8');
+            const values = JSON.parse(data);
+            res.render('index', { values });
+
+            resolve();
+        }
+        catch(error) {
+            reject(error);
+        }
+    });
+}
+
+You don't see the Promise because the JavaScript engine generates it behind the scenes.
+
+A simpler example
+async function greet() {
+    return "Hello";
+}
+
+You might expect:
+
+console.log(greet());
+
+to print:
+
+Hello
+
+but it actually prints:
+
+Promise { 'Hello' }
+
+because JavaScript secretly does:
+
+function greet() {
+    return Promise.resolve("Hello");
+}
+Another example
+async function fail() {
+    throw new Error("Oops");
+}
+
+is equivalent to:
+
+function fail() {
+    return Promise.reject(new Error("Oops"));
+}
+In your Express route
+
+When Express calls:
+
+app.get('/data', async (req, res) => {
+    ...
+});
+
+the handler actually returns a Promise:
+
+const result = handler(req, res);
+
+console.log(result);
+
+would look something like:
+
+Promise { <pending> }
+
+while fs.readFile() is running.
+
+After the file is read and the function finishes, that Promise becomes:
+
+Promise { undefined }
+
+because your function doesn't explicitly return a value.
+
+Key distinction
+
+There are two Promises involved here:
+
+The Promise returned by fs.readFile():
+await fs.readFile(...)
+The Promise automatically returned by your async route handler:
+async (req, res) => { ... }
+
+The second Promise exists because of async.
+
+The first Promise is what await is waiting for.
+
+So you can think of it as:
+
+Async function
+    ↓ returns
+Promise A
+
+Inside it:
+    await fs.readFile(...)
+            ↓ returns
+         Promise B
+
+await pauses the async function until Promise B settles, and then Promise A eventually settles when the function finishes.
+*/

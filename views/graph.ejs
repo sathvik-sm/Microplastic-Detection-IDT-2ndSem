@@ -1,0 +1,90 @@
+<html>
+<head>
+    <title></title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/style.css">
+
+</head>
+
+<body>
+
+    <%- include('./partials/nav.ejs') %>
+
+    <div class="container">
+
+        <div class="card">
+
+            <h1>Signal Analysis</h1>
+
+            <canvas
+                id="signalChart"
+                width="800"
+                height="400">
+            </canvas>
+
+        </div>
+
+    </div>
+
+    <script>
+
+const vin = <%- JSON.stringify(values.vin) %>;
+const vout = <%- JSON.stringify(values.vout) %>;
+
+const labels = Array.from(
+    { length: vin.length },
+    (_, i) => i + 1
+);
+
+const chart = new Chart(
+    document.getElementById('signalChart'),
+    {
+        type: 'line',
+
+        data: {
+
+            labels: labels,
+
+            datasets: [
+
+                {
+                    label: 'Input Signal (Vin)',
+                    data: vin,
+                    borderColor: 'blue'
+                },
+
+                {
+                    label: 'Output Signal (Vout)',
+                    data: vout,
+                    borderColor: 'red'
+                }
+
+            ]
+        }
+    }
+);
+
+setInterval(async () => {
+
+    const response = await fetch('/api/data');
+
+    const data = await response.json();
+
+    chart.data.labels = Array.from(
+        { length: data.vin.length },
+        (_, i) => i + 1
+    );
+
+    chart.data.datasets[0].data = data.vin;
+    chart.data.datasets[1].data = data.vout;
+
+    chart.update();
+
+}, 500);
+
+</script>
+    <%- include('./partials/footer.ejs') %>
+
+</body>
+</html>

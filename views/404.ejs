@@ -1,0 +1,35 @@
+<html>
+    <head>
+    <title>404</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<!--------------------------------------------------------------------------------------------------------------------------------------------->
+    <!--The head will be displayed here! Using Partials. We can do this using the include function!-->
+     <!--We are out-putting a value, so why not use the equal sign within the ejs tags? ans: When we use equal sign, it escapes special characters, we end up with string value, the minus sign wont let that happen, whenever we use include, we must use minus sign to output the value! Now we will output the value whatever is within the nav.ejs!-->
+<!--------------------------------------------------------------------------------------------------------------------------------------------->
+    <body>
+        <nav>
+            <div class="site-title">
+                <a href="/"><h1>Sathvik Blog</h1></a>
+                <p>The Sathvik's Site</p>
+            </div>
+            <ul>
+                <li><a href="/">Blogs</a></li> <!--Link to the home page!-->
+                <li><a href="/about">About</a></li>
+                <li><a href="/blogs/create">New Blogs</a></li> <!--To form a new page! -->
+            </ul>
+        </nav>
+        <div class="not-found">
+
+    <h1>404</h1>
+
+    <h2>Page Not Found</h2>
+
+    <p>The page you requested does not exist.</p>
+
+</div>
+<!--------------------------------------------------------------------------------------------------------------------------------------------->
+    <%- include('./partials/footer.ejs') %> <!--We are out-putting a value, so why not use the equal sign within the ejs tags? ans: When we use equal sign, it escapes special characters, we end up with string value, the minus sign wont let that happen, whenever we use include, we must use minus sign to output the value! Now we will output the value whatever is within the nav.ejs!-->
+<!--------------------------------------------------------------------------------------------------------------------------------------------->
+    </body>
+</html>

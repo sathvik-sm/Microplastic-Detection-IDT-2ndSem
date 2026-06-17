@@ -1,0 +1,226 @@
+<html>
+<head>
+    <title>Microplastic Dashboard</title>
+
+    <link rel="stylesheet" href="/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<%- include('./partials/nav.ejs') %>
+
+<div class="container">
+
+    <h1>Microplastic Detection Dashboard</h1>
+
+    <% if(values){ %>
+
+    <div class="dashboard">
+
+        <div class="metric">
+            <h3>Capacitance</h3>
+            <p id="capacitance"><%= values.capacitance_F %> F</p>
+        </div>
+
+        <div class="metric">
+            <h3>Phase</h3>
+            <p id="phase"><%= values.phase_deg %> °</p>
+        </div>
+
+        <div class="metric">
+            <h3>Alpha</h3>
+            <p id="alpha"><%= values.alpha %></p>
+        </div>
+
+        <div class="metric">
+            <h3>Microplastic Estimate</h3>
+            <p id="microplastic"><%= values.microplastic_estimate %> mg</p>
+        </div>
+
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <h3>Last Updated</h3>
+        <p id="timestamp"><%= values.timestamp %></p>
+    </div>
+
+    <div class="graph-container">
+
+    <div class="card graph-card">
+
+    <h2>Input Signal (Vin)</h2>
+
+    <div class="chart-wrapper">
+        <canvas id="vinChart"></canvas>
+    </div>
+
+</div>
+
+    <div class="card graph-card">
+
+    <h2>Output Signal (Vout)</h2>
+
+    <div class="chart-wrapper">
+        <canvas id="voutChart"></canvas>
+    </div>
+
+</div>
+
+</div>
+
+    <% } else { %>
+
+        <div class="card">
+            No data available.
+        </div>
+
+    <% } %>
+
+</div>
+
+<script>
+
+const vin = <%- JSON.stringify(values.vin) %>;
+const vout = <%- JSON.stringify(values.vout) %>;
+
+const labels = Array.from(
+    { length: vin.length },
+    (_, i) => i + 1
+);
+
+const vinChart = new Chart(
+    document.getElementById('vinChart'),
+    {
+        type: 'line',
+
+        data: {
+            labels: labels,
+
+            datasets: [
+                {
+                    label: 'Input Signal (Vin)',
+                    data: vin,
+                    borderColor: 'blue',
+                    tension: 0.3
+                }
+            ]
+        },
+
+        options: {
+            responsive: true,
+
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Sample Number'
+                    }
+                },
+
+                y: {
+                    title: {
+                        display: true,
+                        text: 'ADC Value'
+                    }
+                }
+            }
+        }
+    }
+);
+
+const voutChart = new Chart(
+    document.getElementById('voutChart'),
+    {
+        type: 'line',
+
+        data: {
+            labels: labels,
+
+            datasets: [
+                {
+                    label: 'Output Signal (Vout)',
+                    data: vout,
+                    borderColor: 'red',
+                    tension: 0.3
+                }
+            ]
+        },
+
+        options: {
+            responsive: true,
+
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Sample Number'
+                    }
+                },
+
+                y: {
+                    title: {
+                        display: true,
+                        text: 'ADC Value'
+                    }
+                }
+            }
+        }
+    }
+);
+
+async function updateDashboard() {
+
+    try {
+
+        const response = await fetch('/api/data');
+
+        const data = await response.json();
+
+        document.getElementById('capacitance').textContent =
+            data.capacitance_F + ' F';
+
+        document.getElementById('phase').textContent =
+            data.phase_deg + ' °';
+
+        document.getElementById('alpha').textContent =
+            data.alpha;
+
+        document.getElementById('microplastic').textContent =
+            data.microplastic_estimate + ' mg';
+
+        document.getElementById('timestamp').textContent =
+            data.timestamp;
+
+        const newLabels = Array.from(
+            { length: data.vin.length },
+            (_, i) => i + 1
+        );
+
+        vinChart.data.labels = newLabels;
+        vinChart.data.datasets[0].data = data.vin;
+        vinChart.update();
+
+        voutChart.data.labels = newLabels;
+        voutChart.data.datasets[0].data = data.vout;
+        voutChart.update();
+
+    }
+    catch(error) {
+
+        console.log(error);
+
+    }
+
+}
+
+setInterval(updateDashboard, 500);
+
+</script>
+
+<%- include('./partials/footer.ejs') %>
+
+</body>
+</html>
